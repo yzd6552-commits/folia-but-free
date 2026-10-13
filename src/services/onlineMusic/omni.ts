@@ -38,6 +38,7 @@ import {
 } from './providerRegistry';
 import { saveProviderAccountSnapshot } from './providerAccountCache';
 import { applyOmniAudioHook, applyOmniLyricsHook } from '../hostExtensionHooks';
+import { resolveKeepaliveSource } from './keepaliveSource';
 
 // src/services/onlineMusic/omni.ts
 // Online Music Network Interface (Omni) - a unified interface for interacting with multiple online music providers.
@@ -482,6 +483,15 @@ export const omni = {
     },
 
     async getAudioSource(song: SongResult, quality: AudioQualityPreference): Promise<OmniAudioSource | null> {
+        // Custom-source override: when enabled, resolve the playback URL through the
+        // keep-alive third-party source before the built-in provider answers.
+        const keepaliveEnabled = (() => {
+            try { return localStorage.getItem('folia.keepaliveSource') === 'on'; } catch { return false; }
+        })();
+        if (keepaliveEnabled) {
+            const custom = await resolveKeepaliveSource(song, quality);
+            if (custom) return custom;
+        }
         const source = await (providerForSong(song).playback?.getAudioSource(song, quality) ?? null);
         // Written here rather than at either caller because this is the only moment a provider ever
         // states a track's ReplayGain, and both callers - the prefetch pass and playback itself -

@@ -16,6 +16,15 @@ import { getProviderSongMetadata } from './onlineMusic/songMetadata';
 import { useLyricSettingsStore } from '../stores/useLyricSettingsStore';
 import { saveLyricCacheSongMetadata } from './lyricExport/lyricCacheMetadata';
 
+// The keep-alive custom source overrides how playback URLs are resolved. Caches
+// filled while it was off (or before a track was resolved through it) hold the
+// built-in provider's answers — for Netease those are 30s trial links and their
+// audio, which would keep playing forever. When the override is on, stale caches
+// are bypassed and the track is resolved fresh through keep-alive.
+const isKeepaliveSourceEnabled = (): boolean => {
+    try { return localStorage.getItem('folia.keepaliveSource') === 'on'; } catch { return false; }
+};
+
 export async function loadOnlineSongAudioSource(
     song: SongResult,
     audioQuality: AudioQualityPreference,
@@ -24,7 +33,8 @@ export async function loadOnlineSongAudioSource(
     | { kind: 'ok'; audioSrc: string; blobUrl?: string; replayGain?: ReplayGainInfo }
     | { kind: 'unavailable'; reason?: ProviderErrorCode }
 > {
-    const cachedAudioBlob = await getCachedSongAudioBlob(song);
+    const keepaliveBypass = isKeepaliveSourceEnabled() && song.sourceRef?.kind === 'online';
+    const cachedAudioBlob = keepaliveBypass ? null : await getCachedSongAudioBlob(song);
     if (cachedAudioBlob) {
         const blobUrl = createSafeObjectUrl(cachedAudioBlob);
         if (blobUrl) {
@@ -39,7 +49,7 @@ export async function loadOnlineSongAudioSource(
         }
     }
 
-    if (prefetched?.audioUrl && prefetched.audioUrl !== 'CACHED_IN_DB' && isUrlValid(prefetched.audioUrlFetchedAt)) {
+    if (!keepaliveBypass && prefetched?.audioUrl && prefetched.audioUrl !== 'CACHED_IN_DB' && isUrlValid(prefetched.audioUrlFetchedAt)) {
         return {
             kind: 'ok',
             audioSrc: prefetched.audioUrl,

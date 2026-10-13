@@ -1124,6 +1124,8 @@ export default {
     "guestMode": "Guest Mode",
     "loginOnHome": "Login on Home",
     "audioQuality": "Default Quality",
+    "keepaliveSource": "Custom Source",
+    "keepaliveSourceHint": "When on, Netease playback URLs are resolved via a third-party source (up to lossless). Online streaming only — no bulk downloading.",
     "qualityStandard": "Standard",
     "qualityExhigh": "Very High",
     "qualityLossless": "Lossless",

@@ -1119,6 +1119,8 @@ export default {
     "guestMode": "Mode Tamu",
     "loginOnHome": "Login di Beranda",
     "audioQuality": "Kualitas Default",
+    "keepaliveSource": "Sumber Kustom",
+    "keepaliveSourceHint": "Saat aktif, URL pemutaran Netease diselesaikan melalui sumber pihak ketiga (hingga lossless). Hanya untuk streaming online.",
     "qualityStandard": "Standar",
     "qualityExhigh": "Sangat Tinggi",
     "qualityLossless": "Lossless",

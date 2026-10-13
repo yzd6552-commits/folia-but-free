@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { LogOut, SlidersHorizontal, HardDrive, Trash2, RefreshCw, Crown } from 'lucide-react';
+import { LogOut, SlidersHorizontal, HardDrive, Trash2, RefreshCw, Crown, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { AudioQualityPreference, ProviderUser } from '../../types/onlineMusic';
 import type { LibraryAccountController } from '../../library/core/contracts/account';
@@ -55,6 +55,9 @@ const AccountTab: React.FC<AccountTabProps> = ({
     // authenticated，controller 会以 not-authenticated 拒绝——按钮这时不可用，而不是点了没反应；登出进行中同样不可用。
     // 不放宽 controller 的判定：unknown 状态的平台还没有可登出的登录态（切换器的登出入口用的是同一条规则）。
     const logoutPending = useLibraryAccountSelector(accountController, selectLogoutPending);
+    const [keepaliveOn, setKeepaliveOn] = useState(() => {
+        try { return localStorage.getItem('folia.keepaliveSource') === 'on'; } catch { return false; }
+    });
     const canLogout = !logoutPending
         && canLogoutProvider(providers.find(provider => provider.providerId === activeProviderId), activeProviderId);
 
@@ -136,6 +139,34 @@ const AccountTab: React.FC<AccountTabProps> = ({
                         </button>
                     ))}
                 </div>
+            </div>
+
+            {/* Custom third-party source (keep-alive) toggle; omni.getAudioSource reads the same storage key. */}
+            <div className="bg-white/5 p-3 rounded-xl">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 opacity-60">
+                        <Globe size={12} />
+                        <span className="text-[10px] font-bold uppercase tracking-wide">
+                            {t('account.keepaliveSource')}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        role="switch"
+                        aria-checked={keepaliveOn}
+                        onClick={() => {
+                            const next = !keepaliveOn;
+                            setKeepaliveOn(next);
+                            try { localStorage.setItem('folia.keepaliveSource', next ? 'on' : 'off'); } catch { /* private mode */ }
+                        }}
+                        className={`w-9 h-5 rounded-full transition-colors relative ${keepaliveOn ? 'bg-emerald-500/80' : 'bg-white/15'}`}
+                    >
+                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${keepaliveOn ? 'left-4.5' : 'left-0.5'}`} />
+                    </button>
+                </div>
+                <p className="text-[10px] opacity-40 mt-2 leading-relaxed">
+                    {t('account.keepaliveSourceHint')}
+                </p>
             </div>
 
             {/* Cache Management Section */}

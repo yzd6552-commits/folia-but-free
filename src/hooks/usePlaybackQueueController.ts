@@ -544,11 +544,18 @@ export function usePlaybackQueueController({
 
         prefetched = getPrefetchedData(song, audioQuality);
 
-        const hasImmediatePrefetchedAudio = Boolean(
+        // With the keep-alive override on, prefetched URLs and cached blobs hold the built-in
+        // provider's answers (30s trial links for Netease); both are skipped so the track
+        // resolves fresh through the custom source.
+        const keepaliveBypass = (() => {
+            try { return localStorage.getItem('folia.keepaliveSource') === 'on'; } catch { return false; }
+        })() && song.sourceRef?.kind === 'online';
+
+        const hasImmediatePrefetchedAudio = !keepaliveBypass && Boolean(
             prefetched?.audioUrl &&
             prefetched.audioUrl !== 'CACHED_IN_DB'
         );
-        const hasCachedAudioBlob = hasImmediatePrefetchedAudio
+        const hasCachedAudioBlob = hasImmediatePrefetchedAudio || keepaliveBypass
             ? null
             : await hasCachedSongAudio(song);
 

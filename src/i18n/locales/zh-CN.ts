@@ -1123,6 +1123,8 @@ export default {
     "guestMode": "游客模式",
     "loginOnHome": "去主页登录",
     "audioQuality": "默认音质",
+    "keepaliveSource": "自定义音源",
+    "keepaliveSourceHint": "开启后网易云歌曲的播放地址通过第三方音源解析（最高无损）。仅供在线试听，请勿批量下载。",
     "qualityStandard": "标准",
     "qualityExhigh": "极高",
     "qualityLossless": "无损",
